@@ -34,7 +34,7 @@ class Records {
     this.onlinePath = onlinePath;
     this.db_name_local = db_name_local;
     this.user = user;
-    this.password;
+    this.password = password;
     this.db_name_online = db_name_online;
     this.online_ip = online_ip;
     this.online_link = online_link;
@@ -118,23 +118,25 @@ class Records {
           final formData = FormData.fromMap({
             'file': file,
             'online_path': this.onlinePath
-          }); // 'file' - this is an api key, can be different
+          });
 
+          // 'file' - this is an api key, can be different
+print("online_path "+this.onlinePath);
           final response = await dio.post(
               // or dio.post
               this.online_link + "upload.php",
               data: formData,
               options: Options(contentType: Headers.formUrlEncodedContentType));
-          print("response " + response.data);
+          print("response " + response.data.toString());
           if (response.statusCode == 200) {
             await conn.query(
-                'INSERT INTO `fichier_audio`(`id`, `uid`, `nom_audio`, `date_audio`, `flagtransmis`) VALUES (?,?,?,?,?)',
+                'INSERT INTO `fichier_audio`(`id_audio`, `iud`, `nom_audio`, `date_audio`, `flagtransmis`) VALUES (?,?,?,?,?)',
                 [
                   row['id'],
                   row['uid'],
                   row['nom_audio'],
                   row['date_audio'],
-                  row['lflagtransmis']
+                  "false"
                 ]);
 
             await db.rawDelete(
@@ -152,11 +154,11 @@ class Records {
 
       await conn.close();
     }catch(e){
-    print("error records");
+    print("error records " +e.toString());
     }finally{
     //Duration temps = new Duration(hours:0, minutes:1, seconds:00);
 
-    Future.delayed(const Duration(seconds: 300),()=> connect());
+    Future.delayed(const Duration(seconds: 900),()=> connect());
     }
     }
   }

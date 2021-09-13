@@ -62,7 +62,7 @@ class DB{
     age TEXT,
     menage TEXT,
     liens TEXT,
-    uids TEXT,
+    uids TEXT UNIQUE,
     email TEXT,
     mdp TEXT,
     images TEXT,
@@ -118,6 +118,7 @@ class DB{
     id_rendement TEXT PRIMARY KEY,
     quantite TEXT,
     quantite_semence TEXT,
+    unites TEXT,
     date_rendement TEXT,
     id_det_plantation TEXT,
     id_det_culture TEXT,
@@ -210,7 +211,7 @@ class DB{
     CREATE TABLE detenteur_culture(
     id_det_culture TEXT PRIMARY KEY,
     id_plantation TEXT,
-    id_culture TEXT,
+    id_culture TEXT UNIQUE,
     campagneAgricole TEXT,
     flagtransmis TEXT)
     ''');
@@ -334,23 +335,69 @@ class DB{
   }
 
   //----------------------------------------------------------------------------------------------------------------------------------------
+  //Update personne admin
+  static Future<int> updatePersonne(String table, Map<String, dynamic> model,String id) async => await _db.update(table, model, where: 'id_personne = ?', whereArgs: [id]);
+
   //Liste des utilisateur ou beneficiaire
-  static Future<List<Map<String, dynamic>>> queryUser(String id_localite) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse WHERE personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_fonction.nom_fonction in ("CAG","AG","CE","E") and personne_adresse.id_localite = "$id_localite"');
+  static Future<List<Map<String, dynamic>>> queryUser(String id_localite) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse WHERE personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_fonction.nom_fonction in ("CAG","AG","CE","E","CAGCE","AGE") and personne_adresse.id_localite = "$id_localite" and personne.menage = "Chef"');
+
   //Liste des utlisateur enfonction du comboBox
-  static Future<List<Map<String, dynamic>>> queryUserComboEl(String id_localite,String select) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse WHERE personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_fonction.nom_fonction in ("CE","E") and personne_adresse.id_localite = "$id_localite"');
+  static Future<List<Map<String, dynamic>>> queryUserComboEl(String id_localite,String select) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse WHERE personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_fonction.nom_fonction in ("CE","E") and personne_adresse.id_localite = "$id_localite" and personne.menage = "Chef"');
+
+  //Liste des utlisateur enfonction du comboBox
+  static Future<List<Map<String, dynamic>>> queryUserComboAgEl(String id_localite,String select) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse WHERE personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_fonction.nom_fonction in ("CAGCE","AGE") and personne_adresse.id_localite = "$id_localite" and personne.menage = "Chef"');
+
 
   //Liste user agriculteur
-  static Future<List<Map<String, dynamic>>> queryUserComboAG(String id_localite,String select) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse WHERE personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_fonction.nom_fonction in ("CAG","AG") and personne_adresse.id_localite = "$id_localite"');
+  static Future<List<Map<String, dynamic>>> queryUserComboAG(String id_localite,String select) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse WHERE personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_fonction.nom_fonction in ("CAG","AG") and personne_adresse.id_localite = "$id_localite" and personne.menage = "Chef"');
 
 
-  //Liste des utilisation
-  static Future<List<Map<String, dynamic>>> queryPlantation(String id_localite) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,detenteur_plantation,plantation WHERE personne.id_personne = personne_fonction.id_personne and personne_fonction.nom_fonction = "CAG" and personne.id_personne = personne_adresse.id_personne and personne.id_personne = detenteur_plantation.id_personne and detenteur_plantation.id_plantation = plantation.id_plantation and personne_adresse.id_localite = "$id_localite"');
+  //Liste des plantations
+  static Future<List<Map<String, dynamic>>> queryPlantation(String id_localite) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,detenteur_plantation,plantation WHERE personne.id_personne = personne_fonction.id_personne and personne_fonction.nom_fonction in ("CAG","CAGCE") and personne.id_personne = personne_adresse.id_personne and personne.id_personne = detenteur_plantation.id_personne and detenteur_plantation.id_plantation = plantation.id_plantation and personne_adresse.id_localite = "$id_localite"');
+
+  //Liste des plantations filter
+  static Future<List<Map<String, dynamic>>> queryPlantationfilter(String id_localite, String query) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,detenteur_plantation,plantation WHERE personne.id_personne = personne_fonction.id_personne and personne_fonction.nom_fonction in ("CAG","CAGCE") and personne.id_personne = personne_adresse.id_personne and personne.id_personne = detenteur_plantation.id_personne and detenteur_plantation.id_plantation = plantation.id_plantation and personne_adresse.id_localite = "$id_localite" and (nom_personne Like "%$query%" OR prenom_personne Like "%$query%")');
+
+  //Liste des CHEF plantations et fermes
+  static Future<List<Map<String, dynamic>>> queryChefPlantationFerme(String id_localite) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,detenteur_plantation,plantation,membre_elevage,elevage WHERE personne.id_personne = personne_fonction.id_personne and personne_fonction.nom_fonction = "CAGCE" and personne.id_personne = personne_adresse.id_personne and personne.id_personne = detenteur_plantation.id_personne and detenteur_plantation.id_plantation = plantation.id_plantation and personne.id_personne = membre_elevage.id_personne and membre_elevage.id_elevage = elevage.id_elevage and personne_adresse.id_localite = "$id_localite"');
+
+  //Liste des CHEF plantations et fermes
+  static Future<List<Map<String, dynamic>>> queryChefPlantationFermefilter(String id_localite, String query) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,detenteur_plantation,plantation,membre_elevage,elevage WHERE personne.id_personne = personne_fonction.id_personne and personne_fonction.nom_fonction = "CAGCE" and personne.id_personne = personne_adresse.id_personne and personne.id_personne = detenteur_plantation.id_personne and detenteur_plantation.id_plantation = plantation.id_plantation and personne.id_personne = membre_elevage.id_personne and membre_elevage.id_elevage = elevage.id_elevage and personne_adresse.id_localite = "$id_localite" and (nom_personne Like "%$query%" OR prenom_personne Like "%$query%")');
+
+  //Liste des plantations et fermes
+  static Future<List<Map<String, dynamic>>> queryPlantationFerme(String id_localite) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,detenteur_plantation,plantation,membre_elevage,elevage WHERE personne.id_personne = personne_fonction.id_personne and personne_fonction.nom_fonction = "CAG" or personne_fonction.nom_fonction = "CE" and personne.id_personne = personne_adresse.id_personne and personne.id_personne = detenteur_plantation.id_personne and detenteur_plantation.id_plantation = plantation.id_plantation and personne.id_personne = membre_elevage.id_personne and membre_elevage.id_elevage = elevage.id_elevage and personne_adresse.id_localite = "$id_localite"');
+
+
   //Profile CHEF CAG
   static Future<List<Map<String, dynamic>>> queryUserAgriculteur(String id) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,plantation,detenteur_culture,detenteur_plantation,localite WHERE personne.id_personne = "$id" and personne.id_personne = personne_fonction.id_personne and personne_adresse.id_personne = personne.id_personne and personne_adresse.id_localite = localite.id_localite and personne.id_personne = detenteur_plantation.id_personne and plantation.id_plantation = detenteur_plantation.id_plantation and plantation.id_plantation = detenteur_culture.id_plantation');
+
+  //Profile CHEF CAG
+  static Future<List<Map<String, dynamic>>> queryUserAgriculteurEleveur(String id) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,'
+      'plantation,detenteur_culture,detenteur_plantation,'
+      'membre_elevage,elevage,culture,'
+      'localite WHERE '
+      'personne.id_personne = "$id" and personne.id_personne = personne_fonction.id_personne and personne_adresse.id_personne = personne.id_personne and personne_adresse.id_localite = localite.id_localite and '
+      'personne.id_personne = detenteur_plantation.id_personne and plantation.id_plantation = detenteur_plantation.id_plantation and plantation.id_plantation = detenteur_culture.id_plantation and '
+      'personne.id_personne = membre_elevage.id_personne and membre_elevage.id_elevage = elevage.id_elevage and elevage.type_elevage = culture.id_culture');
+
   //PROFILE AG
   static Future<List<Map<String, dynamic>>> queryUserAgriculteurAG(String id) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,detenteur_plantation,plantation,detenteur_culture,localite WHERE personne.id_personne = "$id" and personne.id_personne = personne_fonction.id_personne and personne_adresse.id_personne = personne.id_personne and personne_adresse.id_localite = localite.id_localite and personne.id_personne = detenteur_plantation.id_personne and detenteur_plantation.id_plantation = plantation.id_plantation and plantation.id_plantation = detenteur_culture.id_plantation');
+
+ //PROFILE MEMBRE
+  static Future<List<Map<String, dynamic>>> queryMembreAgriculteurAG(String idplantation) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,plantation,detenteur_culture,detenteur_plantation,localite WHERE personne.id_personne = personne_fonction.id_personne and personne.menage = "membre" and personne_adresse.id_personne = personne.id_personne and personne_adresse.id_localite = localite.id_localite and personne.id_personne = detenteur_plantation.id_personne and plantation.id_plantation = detenteur_plantation.id_plantation and plantation.id_plantation = detenteur_culture.id_plantation and plantation.id_plantation = "$idplantation"');
+
+
   //profile Eleveur
   static Future<List<Map<String, dynamic>>> queryUserEleveur(String id) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,membre_elevage,elevage,localite,culture WHERE personne.id_personne = "$id" and personne.id_personne = personne_fonction.id_personne and personne_adresse.id_personne = personne.id_personne and personne.id_personne = membre_elevage.id_personne and membre_elevage.id_elevage = elevage.id_elevage and personne_adresse.id_localite = localite.id_localite and elevage.type_elevage = culture.id_culture');
+
+  //profile Membre Eleveur
+  static Future<List<Map<String, dynamic>>> queryMembreEleveur(String idferme) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,membre_elevage,elevage,localite WHERE personne.id_personne = personne_fonction.id_personne and personne.menage = "membre" and personne_adresse.id_personne = personne.id_personne and personne.id_personne = membre_elevage.id_personne and membre_elevage.id_elevage = elevage.id_elevage and elevage.id_elevage = "$idferme" and personne_adresse.id_localite = localite.id_localite'); //and elevage.type_elevage = culture.id_culture
+
+
+  //profile Membre Eleveur
+  static Future<List<Map<String, dynamic>>> queryInfoGroupmt(String idpersonne) async => await _db.rawQuery('SELECT * FROM groupement,membre_groupement,unions WHERE membre_groupement.id_personne = "$idpersonne" and groupement.id_union = unions.id_un and groupement.id_groupement = membre_groupement.id_groupement');// and statu = "Chef"
+
+
   //Selection des Culture
   static Future<List<Map<String, dynamic>>> queryCulture(String id_plantation, String campagne) async => await _db.rawQuery('select detenteur_culture.id_det_culture AS id_c,* from plantation,detenteur_culture,culture where plantation.id_plantation = detenteur_culture.id_plantation AND detenteur_culture.id_culture = culture.id_culture AND plantation.id_plantation="$id_plantation" AND culture.code="AG" and detenteur_culture.campagneAgricole = "$campagne"');// group by culture.id_culture
 
@@ -362,33 +409,73 @@ class DB{
 
   //Selection des espece
   static Future<List<Map<String, dynamic>>> queryIdDetCult(String id_plantation,String id_culture) async => await _db.rawQuery('SELECT * FROM detenteur_culture WHERE id_plantation = "$id_plantation" AND id_culture= "$id_culture"');
+
   //Verification du chef de groupement
   static Future<List<Map<String, dynamic>>> queryMbreGrp(String id_personne) async => await _db.rawQuery('SELECT * FROM membre_groupement WHERE membre_groupement.id_personne = "$id_personne" and statu = "Chef"');
+
+  //Verification du president de groupement
+  static Future<List<Map<String, dynamic>>> queryPreGrp(String id_groupement) async => await _db.rawQuery('SELECT * FROM membre_groupement,personne WHERE membre_groupement.id_groupement = "$id_groupement" and statu = "Chef" and personne.id_personne = membre_groupement.id_personne');
+
   //Selection des espece
   static Future<List<Map<String, dynamic>>> queryEspece(String id_elevage) async => await _db.rawQuery('SELECT * FROM elevage_espece WHERE elevage_espece.id_elevage = "$id_elevage"');
+
   //Selection des culture en fonction des utilisateur
   static Future<List<Map<String, dynamic>>> querySelectMyCulture(String code, String plantation, String campagne) async => await _db.rawQuery('SELECT * FROM detenteur_culture,culture,plantation WHERE plantation.id_plantation = "$plantation" and detenteur_culture.id_culture = culture.id_culture and detenteur_culture.id_plantation = plantation.id_plantation and code = "$code" and detenteur_culture.campagneAgricole = "$campagne"');
+
   static Future<List<Map<String, dynamic>>> querySelectCultureSuivit(String code, String plantation, String campagne) async => await _db.rawQuery('SELECT * FROM culture WHERE culture.code = "$code" and culture.id_culture NOT IN (SELECT id_culture FROM detenteur_culture WHERE id_plantation = "$plantation" and campagneAgricole = "$campagne")');
+
   static Future<List<Map<String, dynamic>>> querySelectCulture(String code) async => await _db.rawQuery('SELECT * FROM culture WHERE code = "$code"');
+
   static Future<List<Map<String, dynamic>>> querySelectCult(String nom_culture) async => await _db.rawQuery('SELECT * FROM culture WHERE nom_culture = "$nom_culture"');
+
+  //Verification id culture
+  static Future<List<Map<String, dynamic>>> queryVerifCult(String id_culture) async => await _db.rawQuery('SELECT * FROM culture WHERE id_culture = "$id_culture"');
+
   //Section des membre de groupement
-  static Future<List<Map<String, dynamic>>> querychefgroup() async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse WHERE personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_fonction.nom_fonction in ("C","CE","CAG","AG")');
+  static Future<List<Map<String, dynamic>>> querychefgroup() async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse WHERE personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_fonction.nom_fonction in ("E","CE","CAG","AG","CAGCE","AGE")');
+
+  //Section des membre de groupement
+  static Future<List<Map<String, dynamic>>> querychefgroupfilter(String query) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse WHERE personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_fonction.nom_fonction in ("E","CE","CAG","AG","CAGCE","AGE") and (nom_personne Like "%$query%" OR prenom_personne Like "%$query%")');
 
   //Section des GROUPEMENT DANS LE PANNEL
   static Future<List<Map<String, dynamic>>> querygroupunion() async => await _db.rawQuery('SELECT * FROM groupement,unions WHERE groupement.id_union = unions.id_un');
 
-  static Future<List<Map<String, dynamic>>> querygroupunionuser(String idpersonne) async => await _db.rawQuery('SELECT * FROM membre_groupement,groupement,unions WHERE groupement.id_union = unions.id_un and membre_groupement.id_personne = "$idpersonne" and membre_groupement.id_groupement = groupement.id_groupement');
+  //Section des GROUPEMENT DANS LE PANNEL
+  static Future<List<Map<String, dynamic>>> querygroupinfo() async => await _db.rawQuery('SELECT * FROM groupement,unions,membre_groupement,personne WHERE groupement.id_union = unions.id_un and groupement.id_groupement = membre_groupement.id_groupement and membre_groupement.statu = "Chef" and membre_groupement.id_personne = personne.id_personne');
+
+  //Section des MEMBRE GROUPEMENT DANS LE PANNEL GROUPEMENT
+  static Future<List<Map<String, dynamic>>> queryMbreGrpmt(String idgrpmt) async => await _db.rawQuery('SELECT * FROM personne, membre_groupement, groupement WHERE personne.id_personne = membre_groupement.id_personne and membre_groupement.id_groupement = groupement.id_groupement AND groupement.id_groupement = "$idgrpmt" ');
+
+
+  static Future<List<Map<String, dynamic>>> querygroupunionuser(String idpersonne) async => await _db.rawQuery('SELECT * FROM membre_groupement,groupement,unions WHERE groupement.id_union = unions.id_un and membre_groupement.id_personne = "$idpersonne" and membre_groupement.id_groupement = groupement.id_groupement'); //SELECT * FROM membre_groupement,groupement,unions WHERE groupement.id_union = unions.id_un and membre_groupement.id_personne = "$idpersonne" and membre_groupement.id_groupement = groupement.id_groupement and membre_groupement.id_personne = personne.id_personne
 
   static Future<List<Map<String, dynamic>>> querygroupuser(String idpersonne) async => await _db.rawQuery('SELECT * FROM membre_groupement,groupement,unions WHERE groupement.id_union = unions.id_un and membre_groupement.id_personne = "$idpersonne" and membre_groupement.id_groupement = groupement.id_groupement and "$idpersonne" NOT IN (SELECT id_personne FROM membre_groupement)');
 
 
   //Selection des chef eleveur Ferme
-  static Future<List<Map<String, dynamic>>> queryFerme(String id_localite) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,membre_elevage,elevage WHERE personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_fonction.nom_fonction = "CE" and personne.id_personne = membre_elevage.id_personne and membre_elevage.id_elevage = elevage.id_elevage and personne_adresse.id_localite = "$id_localite"');
+  static Future<List<Map<String, dynamic>>> queryFerme(String id_localite) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,membre_elevage,elevage WHERE personne.menage = "Chef" and personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_fonction.nom_fonction in ("CE","CAGCE") and personne.id_personne = membre_elevage.id_personne and membre_elevage.id_elevage = elevage.id_elevage and personne_adresse.id_localite = "$id_localite"');
+
+  //Selection des chef eleveur Ferme
+  static Future<List<Map<String, dynamic>>> queryFermefilter(String id_localite, String query) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,membre_elevage,elevage WHERE personne.menage = "Chef" and personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_fonction.nom_fonction in ("CE","CAGCE") and personne.id_personne = membre_elevage.id_personne and membre_elevage.id_elevage = elevage.id_elevage and personne_adresse.id_localite = "$id_localite" and (nom_personne Like "%$query%" OR prenom_personne Like "%$query%")');
+
   //Verification groupement
   //static Future<List<Map<String, dynamic>>> queryverifgroupmnt(String id_personne) async => await _db.rawQuery('SELECT * FROM membre_groupement WHERE id_personne = "$id_personne"');
+
   static Future<List<Map<String, dynamic>>> querycountgroupmnt(String id_personne) async => await _db.rawQuery('SELECT COUNT(id) AS nmbre_groupment FROM membre_groupement WHERE id_personne = "$id_personne"');
+
+  //Groupement et personne
   static Future<List<Map<String, dynamic>>> queryverifgroupmnt(String id_personne, String group) async => await _db.rawQuery('SELECT * FROM membre_groupement WHERE id_personne = "$id_personne" AND id_groupement = "$group"');
+
+
+  //Especes elevage
+  static Future<List<Map<String, dynamic>>> queryverifespelv(String nom_espece) async => await _db.rawQuery('SELECT * FROM elevage_espece WHERE espece = "$nom_espece"');
+
+
+  //Groupement
+  static Future<List<Map<String, dynamic>>> queryverifgroup(String id_personne) async => await _db.rawQuery('SELECT * FROM membre_groupement WHERE id_personne = "$id_personne"');
+
   static Future<List<Map<String, dynamic>>> queryverifgroupmntChef(String id_personne, String group) async => await _db.rawQuery('SELECT * FROM membre_groupement WHERE id_personne = "$id_personne" AND id_groupement = "$group" AND statu = "Chef"');
+
   //Selection des donnees d'un agent
   static Future<List<Map<String, dynamic>>> queryAgent(String id_personne) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse,localite WHERE personne.id_personne = "$id_personne" and personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_adresse.id_localite = localite.id_localite');
 
@@ -405,7 +492,7 @@ class DB{
 
   //------------------------------------------------------------------------------------------------------------------------------------------
   //Serache personne
-  static Future<List<Map<String, dynamic>>> querySearch(String idloc, String query) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse WHERE personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_fonction.nom_fonction in ("CAG","AG","CE","E") and personne_adresse.id_localite = "$idloc" and (nom_personne Like "%$query%" OR prenom_personne Like "%$query%")');
+  static Future<List<Map<String, dynamic>>> querySearch(String idloc, String query) async => await _db.rawQuery('SELECT personne.id_personne AS id_personne,* FROM personne,personne_fonction,personne_adresse WHERE personne.id_personne = personne_fonction.id_personne and personne.id_personne = personne_adresse.id_personne and personne_fonction.nom_fonction in ("CAG","AG","CE","E","CAGCE","AGE") and personne_adresse.id_localite = "$idloc" and (nom_personne Like "%$query%" OR prenom_personne Like "%$query%")');
 
 
 
@@ -453,10 +540,10 @@ class DB{
   static Future<List<Map<String, dynamic>>> queryMediaCateg(String categorie, String lang) async => await _db.rawQuery('SELECT * FROM media WHERE media_categorie = "$categorie" and media_lang = "$lang" and media_sous_categorie = "presentation" ORDER BY id DESC LIMIT 1');//ifnull(length(media_sous_categorie), 1) = 1 or ifnull(length(media_sous_categorie), 0) = 0
 
   //Select Video Sous categories max 6
-  static Future<List<Map<String, dynamic>>> queryMediaCategAll(String categorie, String lang) async => await _db.rawQuery('SELECT * FROM media WHERE media_categorie = "$categorie" and media_lang = "$lang" ORDER BY id DESC LIMIT 6');
+  static Future<List<Map<String, dynamic>>> queryMediaCategAll(String categorie, String lang) async => await _db.rawQuery('SELECT * FROM media WHERE media_categorie = "$categorie" and media_lang = "$lang" ORDER BY id DESC LIMIT 12');
 
   //Select Video Sous categories max 6
-  static Future<List<Map<String, dynamic>>> queryMediaScateg(String categorie, String scateg, String lang) async => await _db.rawQuery('SELECT * FROM media WHERE media_categorie = "$categorie" and media_sous_categorie = "$scateg" and media_lang = "$lang" ORDER BY id DESC LIMIT 6');
+  static Future<List<Map<String, dynamic>>> queryMediaScateg(String categorie, String scateg, String lang) async => await _db.rawQuery('SELECT * FROM media WHERE media_categorie = "$categorie" and media_sous_categorie = "$scateg" and media_lang = "$lang" ORDER BY id DESC LIMIT 12');
 
   //Select Video Sous categories max 6
   static Future<List<Map<String, dynamic>>> queryMediaScategAliment(String categorie, String scateg, String lang) async => await _db.rawQuery('SELECT * FROM media WHERE media_categorie = "$categorie" and media_sous_categorie = "$scateg" and media_lang = "$lang" ORDER BY id DESC LIMIT 1');
@@ -470,6 +557,9 @@ class DB{
 
   //Select Video
   static Future<List<Map<String, dynamic>>> queryVocal(String nom_audio) async => await _db.rawQuery('SELECT * FROM fichier_audio WHERE nom_audio = "$nom_audio"');
+
+  //Drop or delect table
+  static Future<List<Map<String, dynamic>>> troncateTable(String table) async => await _db.rawQuery('DELETE from "$table"');
 
 
 

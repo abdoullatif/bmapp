@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:bmapp/database/storageUtil.dart';
 import 'package:flutter/material.dart';
 
+import 'changePassword.dart';
+
 class ProfileAgent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -51,7 +53,7 @@ class _ProfileAState extends State<ProfileA> {
     mdp = StorageUtil.getString("mdp");
     images = StorageUtil.getString("images");
     localite = StorageUtil.getString("localite");
-    fonction = StorageUtil.getString("fonction");
+    fonction = StorageUtil.getString("fonction") == "AD" ? "Agent" : StorageUtil.getString("fonction");
 
     return Center(
       child: Container(
@@ -191,6 +193,12 @@ class _ProfileAState extends State<ProfileA> {
                     )
                 ),
                 Divider(),
+                FlatButton(
+                  child: Text("Modifier mon mot de passe"),
+                  onPressed: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => changePassword()),);
+                  },
+                ),
               ],
             ),
           ),

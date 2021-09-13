@@ -95,7 +95,7 @@ class _searchUidState extends State<searchUid> {
                         padding: EdgeInsets.all(10),
                         child: CircleAvatar(
                           radius: 80,
-                          backgroundImage: FileImage(File('/storage/emulated/0/Android/data/com.tulipind.pam/files/Pictures/${snap["image_BP"]}')),
+                          backgroundImage: FileImage(File('/storage/emulated/0/Android/data/com.tulipind.bmapp/files/Pictures/${snap["image_BP"]}')),
                         ),
                       ),
                       Divider(),

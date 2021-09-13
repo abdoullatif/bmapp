@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:bmapp/database/database.dart';
 import 'package:dropdown_formfield/dropdown_formfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 
 class ParametreTablette extends StatelessWidget {
@@ -11,6 +14,165 @@ class ParametreTablette extends StatelessWidget {
       appBar: AppBar(
         title: Text(""),
         centerTitle: true,
+        actions: [
+          FlatButton(
+              onPressed: () async{
+                var confirm = await showDialog<String>(
+                  context: context,
+                  builder: (BuildContext context){
+                    return AlertDialog(
+                      title: Text("ATTENTION"),
+                      content: Text('Voulez vous vraiment videz la base de donnée de la tablette ?', style: TextStyle(color: Colors.red),),
+                      actions: [
+                        FlatButton(
+                          child: Text('NON'),
+                          onPressed: (){
+                            Navigator.of(context).pop('non');
+                          },
+                        ),
+                        FlatButton(
+                          child: Text('Supprimer Les Donnees (Excepter les media)'),
+                          onPressed: (){
+                            Navigator.of(context).pop('oui');
+                          },
+                        ),
+                        FlatButton(
+                          child: Text('Supprimer toutes les Donnees + video (all)'),
+                          onPressed: (){
+                            Navigator.of(context).pop('all');
+                          },
+                        ),
+                      ],
+                    );
+                  }
+                );
+                //if Confirm oui
+                if(confirm == "all"){
+
+                  //Delecte all picture in database
+
+                  List<Map<String, dynamic>> queryPersonne = await DB.queryAll("personne");
+
+                  if(queryPersonne.isNotEmpty){
+                    for (int i = 0; i < queryPersonne.length; i++){
+                      File picture = File('/storage/emulated/0/Android/data/com.tulipind.bmapp/files/Pictures/${queryPersonne[i]["images"]}');
+                      await picture.delete();
+                    }
+                  }
+
+                  //Delecte all media in database
+
+                  List<Map<String, dynamic>> queryMedia = await DB.queryAll("media");
+
+                  if(queryMedia.isNotEmpty){
+                    for (int i = 0; i < queryMedia.length; i++){
+                      File media = File("/storage/emulated/0/Android/data/com.tulipind.bmapp/files/Video/${queryMedia[i]['media_file']}");
+                      await media.delete();
+                    }
+                  }
+
+                  //all table
+                  DB.troncateTable("campagne_agricole"); //table
+                  DB.troncateTable("langues"); //table
+                  DB.troncateTable("personne"); //table
+                  DB.troncateTable("personne_adresse"); //table
+                  DB.troncateTable("personne_fonction"); //table
+                  DB.troncateTable("localite"); //table
+                  DB.troncateTable("prefecture"); //table
+                  DB.troncateTable("region"); //table
+                  DB.troncateTable("rendement"); //table
+                  DB.troncateTable("rendement_elevage"); //table
+                  DB.troncateTable("services_recus"); //table
+                  DB.troncateTable("biens"); //table
+                  DB.troncateTable("sous_prefecture"); //table
+                  DB.troncateTable("subvention"); //table
+                  DB.troncateTable("detenteur_plantation"); //table
+                  DB.troncateTable("plantation"); //table
+                  DB.troncateTable("detenteur_culture"); //table
+                  DB.troncateTable("culture"); //table
+                  DB.troncateTable("elevage"); //table
+                  DB.troncateTable("elevage_espece"); //table
+                  DB.troncateTable("especes"); //table
+                  DB.troncateTable("groupement"); //table
+                  DB.troncateTable("membre_groupement"); //table
+                  DB.troncateTable("membre_elevage"); //table
+                  DB.troncateTable("media"); //table
+                  DB.troncateTable("categories"); //table
+                  DB.troncateTable("fichier_audio"); //table
+                  DB.troncateTable("federation"); //table
+                  DB.troncateTable("confederation"); //table
+                  DB.troncateTable("unions"); //table
+
+                  //Toaste
+                  Fluttertoast.showToast(
+                      msg: "La base de donnée et media ont été nottoyer avec succès ! ",
+                      toastLength: Toast.LENGTH_LONG,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 5,
+                      backgroundColor: Colors.green,
+                      textColor: Colors.white,
+                      fontSize: 16.0
+                  );
+
+                } else if (confirm == "oui") {
+
+                  //Delecte all picture in database
+
+                  List<Map<String, dynamic>> queryPersonne = await DB.queryAll("personne");
+
+                  if(queryPersonne.isNotEmpty){
+                    for (int i = 0; i < queryPersonne.length; i++){
+                      File picture = File('/storage/emulated/0/Android/data/com.tulipind.bmapp/files/Pictures/${queryPersonne[i]["images"]}');
+                      await picture.delete();
+                    }
+                  }
+
+                  // Exepte Media
+                  DB.troncateTable("campagne_agricole"); //table
+                  DB.troncateTable("langues"); //table
+                  DB.troncateTable("personne"); //table
+                  DB.troncateTable("personne_adresse"); //table
+                  DB.troncateTable("personne_fonction"); //table
+                  DB.troncateTable("localite"); //table
+                  DB.troncateTable("prefecture"); //table
+                  DB.troncateTable("region"); //table
+                  DB.troncateTable("rendement"); //table
+                  DB.troncateTable("rendement_elevage"); //table
+                  DB.troncateTable("services_recus"); //table
+                  DB.troncateTable("biens"); //table
+                  DB.troncateTable("sous_prefecture"); //table
+                  DB.troncateTable("subvention"); //table
+                  DB.troncateTable("detenteur_plantation"); //table
+                  DB.troncateTable("plantation"); //table
+                  DB.troncateTable("detenteur_culture"); //table
+                  DB.troncateTable("culture"); //table
+                  DB.troncateTable("elevage"); //table
+                  DB.troncateTable("elevage_espece"); //table
+                  DB.troncateTable("especes"); //table
+                  DB.troncateTable("groupement"); //table
+                  DB.troncateTable("membre_groupement"); //table
+                  DB.troncateTable("membre_elevage"); //table
+                  //DB.troncateTable("media"); //table
+                  DB.troncateTable("categories"); //table
+                  DB.troncateTable("fichier_audio"); //table
+                  DB.troncateTable("federation"); //table
+                  DB.troncateTable("confederation"); //table
+                  DB.troncateTable("unions"); //table
+                  //Toaste
+                  Fluttertoast.showToast(
+                      msg: "La base de donnée a été nottoyer avec succès (Except media) ! ",
+                      toastLength: Toast.LENGTH_LONG,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 5,
+                      backgroundColor: Colors.green,
+                      textColor: Colors.white,
+                      fontSize: 16.0
+                  );
+                }
+              },
+              child: Icon(Icons.delete_rounded, color: Colors.white,),
+          ),
+        ],
       ),
       body: Parametre(),
     );
@@ -203,7 +365,7 @@ class _ParametreState extends State<Parametre> {
                             //On modifie les informations present
                             await DB.update("parametre", {
                               "device": _device.text,
-                              "locate": "",
+                              //"locate": "",
                               "dbname": _dbname.text,
                               "mdp": _mdp.text,
                               "adresse_server": _adresse_server.text,
@@ -218,7 +380,7 @@ class _ParametreState extends State<Parametre> {
                             // insertion du nom de la tablette
                             await DB.insert("parametre", {
                               "device": _device.text,
-                              "locate": "",
+                              //"locate": "",
                               "adresse_server": _adresse_server.text,
                               "dbname": _dbname.text,
                               "ip_server": _ip_server.text,
@@ -256,7 +418,7 @@ class _ParametreState extends State<Parametre> {
                             _adresse_server = TextEditingController(text: tab[0]['adresse_server']);
                             _dbname = TextEditingController(text: tab[0]['dbname']);
                             _ip_server = TextEditingController(text: tab[0]['ip_server']);
-                            _site_pdaig = TextEditingController(text: tab[0]['site_pam']);
+                            _site_pdaig = TextEditingController(text: tab[0]['site_pdaig']);
                             _user = TextEditingController(text: tab[0]['user']);
                             _mdp = TextEditingController(text: tab[0]['mdp']);
                           });

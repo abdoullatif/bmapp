@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:bmapp/database/database.dart';
 import 'package:bmapp/database/storageUtil.dart';
 import 'package:bmapp/models/donnee_route.dart';
-import 'package:bmapp/pages/User.dart';
+import 'package:bmapp/pages/userAgriculteur.dart';
+import 'package:bmapp/pages/userAgriculteurEleveur.dart';
+import 'package:bmapp/pages/userEleveur.dart';
 import 'package:flutter/material.dart';
 
 class SearchUI extends SearchDelegate<String> {
@@ -45,6 +48,11 @@ class SearchUI extends SearchDelegate<String> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
+
+    FutureOr onGoBack(dynamic value) {
+      //setState(() {});
+    }
+
     String data = query;
     return SingleChildScrollView(
       child: Column(
@@ -78,11 +86,29 @@ class SearchUI extends SearchDelegate<String> {
                                           //backgroundImage: Image.file(file),
                                         ),
                                         title: Text('${currentItems[index]["nom_personne"]} ${currentItems[index]["prenom_personne"]}'),
-                                        subtitle: Text('${currentItems[index]["nom_fonction"]}'),
+                                        subtitle: currentItems[index]['nom_fonction'] == "E" ? Text('Membre Eleveur') :
+                                                  currentItems[index]['nom_fonction'] == "CE" ? Text('Chef menage Eleveur') :
+                                                  currentItems[index]['nom_fonction'] == "AG" ? Text('Membre Agriculteur') :
+                                                  currentItems[index]['nom_fonction'] == "CAG" ? Text('Chef menage Agriculteur') :
+                                                  currentItems[index]['nom_fonction'] == "CAGCE" ? Text('Chef menage Agriculteur et Eleveur') :
+                                                  currentItems[index]['nom_fonction'] == "AGE" ? Text('Membre Agriculteur et Eleveur') :
+                                                  Text('${currentItems[index]['nom_fonction']}'),
                                         onTap: (){
-                                          Navigator.push(context, MaterialPageRoute(builder: (context) => UserPannel(),settings: RouteSettings(arguments: DonneeRoute(
-                                              '${currentItems[index]['id_personne']}', '${currentItems[index]['nom_fonction']}'
-                                          ))),);
+
+                                          if(currentItems[index]['nom_fonction'] == "E" || currentItems[index]['nom_fonction'] == "CE"){
+                                            Navigator.push(context, MaterialPageRoute(builder: (context) => UserPannelEleveur(),settings: RouteSettings(arguments: DonneeRoute(
+                                                '${currentItems[index]['id_personne']}', '${currentItems[index]['nom_fonction']}'
+                                            ))),).then(onGoBack);
+                                          } else if (currentItems[index]['nom_fonction'] == "AG" || currentItems[index]['nom_fonction'] == "CAG"){
+                                            Navigator.push(context, MaterialPageRoute(builder: (context) => UserPannel(),settings: RouteSettings(arguments: DonneeRoute(
+                                                '${currentItems[index]['id_personne']}', '${currentItems[index]['nom_fonction']}'
+                                            ))),).then(onGoBack);
+                                          } else if (currentItems[index]['nom_fonction'] == "AGE" || currentItems[index]['nom_fonction'] == "CAGCE"){
+                                            Navigator.push(context, MaterialPageRoute(builder: (context) => AgriculteurEleveurPannel(),settings: RouteSettings(arguments: DonneeRoute(
+                                                '${currentItems[index]['id_personne']}', '${currentItems[index]['nom_fonction']}'
+                                            ))),).then(onGoBack);
+                                          } else {}
+
                                         },
                                       ),
                                     );

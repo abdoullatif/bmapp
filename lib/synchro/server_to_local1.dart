@@ -2,9 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:path/path.dart';
-import 'dart:typed_data';
-import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:intl/intl.dart';
 
@@ -96,9 +94,58 @@ class Synchro {
             password: this.password,
             db: this.db_name_online));
 
+
+
       // int updateCount = await db.rawUpdate(
       //  'UPDATE `classe` SET  `flagtransmis`=? WHERE id=?', ['', 'lok']);
       print(" server to local start");
+
+        try {
+
+          //final conn = await MySqlConnection.connect(ConnectionSettings(
+          // host: '192.168.43.8', port: 3306, user: 'root', db: 'pam2'));
+          var get_campagne_agricole_rows = await conn.query(
+              'SELECT * FROM  campagne_agricole ', []);
+
+
+
+          //var codification_update_time = "";
+          // print("flagtransmis" + detenteur_plantation_update_time);
+          counting = 0;
+          for (var row in get_campagne_agricole_rows) {
+            try{
+              // print("new" + row['flagtransmis']);
+              var id = row['id'];
+              int exiting = Sqflite.firstIntValue(await db.rawQuery(
+                  'SELECT COUNT(*) FROM campagne_agricole  where id=?',
+                  [id]));
+              if (exiting == 0)  {
+                //insert
+                await db.rawQuery(
+                    'INSERT INTO `campagne_agricole` (`id`, `description`) VALUES (?,?)',
+                    [
+                      row['id'],
+                      row['description'],
+
+
+                    ]);
+                counting++;
+              }
+            }catch(e){
+              print("error ");
+            }
+
+          }
+          //  await db.rawQuery('DELETE FROM `rendement` WHERE 1', []);
+          //  List<Map> sgroupement =
+          //  await db.rawQuery('SELECT * FROM campagne_agricole');
+          // print(sgroupement);
+
+          print('campagne_agricole ${counting}');
+
+        } catch (e) {
+          print("error from  campagne_agricole table " + e.toString());
+        }
 
       try {
         //localite
@@ -106,6 +153,7 @@ class Synchro {
 
         //final conn = await MySqlConnection.connect(ConnectionSettings(
         // host: '192.168.43.8', port: 3306, user: 'root', db: 'pam2'));
+
         var get_localite_rows =
             await conn.query('SELECT * FROM  localite  ', []);
 
@@ -228,8 +276,66 @@ class Synchro {
       } catch (e) {
         print("error from langue table" + e.toString());
       }
-      if (ids.first['locate'].toString().isNotEmpty && ids?.first['locate'] != null) {
-        print("locate: " + ids.first['locate'].toString());
+
+
+
+
+
+
+        try {
+
+          //final conn = await MySqlConnection.connect(ConnectionSettings(
+          // host: '192.168.43.8', port: 3306, user: 'root', db: 'pam2'));
+          var get_unions_rows = await conn.query(
+              'SELECT * FROM  unions ', []);
+
+          //   print(get_unions_rows.toString());
+
+          //var codification_update_time = "";
+          // print("flagtransmis" + detenteur_plantation_update_time);
+          counting = 0;
+          for (var row in get_unions_rows) {
+            try{
+              // print("new" + row['flagtransmis']);
+              var id = row['id_un'];
+              int exiting = Sqflite.firstIntValue(await db.rawQuery(
+                  'SELECT COUNT(*) FROM unions  where id_un=?',
+                  [id]));
+              if (exiting != 0) {
+                //update
+                //no update here
+
+              } else {
+                //insert
+                await db.rawQuery(
+                    'INSERT INTO `unions`(`id_un`, `id_fed`,description_un ,flagtransmis) VALUES (?,?,?,?)',
+                    [
+                      row['id_un'],
+                      row['id_fed'],
+                      row['description_un'],
+                      row['flagtransmis'],
+
+
+                    ]);
+                counting++;
+              }
+            }catch(e){
+              print("error ");
+            }
+
+          }
+          //  await db.rawQuery('DELETE FROM `rendement` WHERE 1', []);
+          //  List<Map> sgroupement =
+
+
+          print('unions ${counting}');
+
+        } catch (e) {
+          print("error from  unions table " + e.toString());
+        }
+
+
+
 
         //culture
         try {
@@ -245,8 +351,8 @@ class Synchro {
           counting = 0;
           for (var row in get_culture_rows) {
 
-              try{
-             // print("new" + row['flagtransmis']);
+            try{
+              // print("new" + row['flagtransmis']);
               var id = row['id_culture'];
               int exiting = Sqflite.firstIntValue(await db.rawQuery(
                   'SELECT COUNT(*) FROM culture  where id_culture=?', [id]));
@@ -281,9 +387,9 @@ class Synchro {
                     ]);
                 counting++;
               }
-              }catch(e){
-                print("error "+e.toString());
-              }
+            }catch(e){
+              print("error "+e.toString());
+            }
 
           }
           //await db.rawQuery('DELETE FROM `plantation` WHERE 1', []);
@@ -296,6 +402,13 @@ class Synchro {
         } catch (e) {
           print("error from culture table" + e.toString());
         }
+
+
+
+      if (ids.first['locate'].toString().isNotEmpty && ids?.first['locate'] != null) {
+        print("locate: " + ids.first['locate'].toString());
+
+
 
         try {
           //detenteur culture
@@ -446,81 +559,7 @@ class Synchro {
           print("error from detenteur plantation table" + e.toString());
         }
 
-        /*
-        try {
-          //detenteur plantation
 
-          //final conn = await MySqlConnection.connect(ConnectionSettings(
-          // host: '192.168.43.8', port: 3306, user: 'root', db: 'pam2'));
-          var get_don_rows = await conn.query(
-              'SELECT * FROM  don where (locate=? or locate=?)',
-              [ids.first['locate'], 'all']);
-
-          //var codification_update_time = "";
-          // print("flagtransmis" + detenteur_plantation_update_time);
-          counting = 0;
-          for (var row in get_don_rows) {
-
-             // print("new" + row['flagtransmis']);
-              var id = row['id_don'];
-              int exiting = Sqflite.firstIntValue(await db
-                  .rawQuery('SELECT COUNT(*) FROM don  where id_don=?', [id]));
-              if (exiting != 0) {
-                //update
-                List<Map> don_update = await db.rawQuery(
-                    'SELECT * FROM don where id_don=?', [id]);
-                var don_update_time;
-                if (don_update.length == 0)
-                  don_update_time = "";
-                else
-                  don_update_time = don_update.first['flagtransmis'];
-                if ((don_update_time).toString().compareTo(row['flagtransmis']) <
-                    0) {
-                  counting++;
-                  await db.rawUpdate(
-                      'UPDATE `don` SET `type_don`=?,`variete_semence`=?,`qte_semence`=?,`type_angrais`=?,`qte_angrais`=?,`qte_herbicide`=?,`idpersonne`=?,`flagtransmis`=? WHERE `id_don`=?',
-                      [
-                        row['type_don'],
-                        row['variete_semence'],
-                        row['qte_semence'],
-                        row['type_angrais'],
-                        row['qte_angrais'],
-                        row['qte_herbicide'],
-                        row['idpersonne'],
-                        row['flagtransmis'],
-                        row['id_don']
-                      ]);
-                }
-              } else {
-                //insert
-                await db.rawQuery(
-                    'INSERT INTO `don`(`id_don`, `type_don`, `variete_semence`, `qte_semence`, `type_angrais`, `qte_angrais`, `qte_herbicide`, `idpersonne`, `flagtransmis`) VALUES (?,?,?,?,?,?,?,?,?)',
-                    [
-                      row['id_don'],
-                      row['type_don'],
-                      row['variete_semence'],
-                      row['qte_semence'],
-                      row['type_angrais'],
-                      row['qte_angrais'],
-                      row['qte_herbicide'],
-                      row['idpersonne'],
-                      row['flagtransmis']
-                    ]);
-                counting++;
-              }
-
-          }
-          //await db.rawQuery('DELETE FROM `detenteur_culture` WHERE 1', []);
-          // List<Map> sdetenteur_culture =
-          //   await db.rawQuery('SELECT * FROM detenteur_plantation');
-          // print(sdetenteur_culture);
-
-          print('don ${counting}');
-        } catch (e) {
-          print("error from don table" + e.toString());
-        }
-
-        */
 
         try {
           //elevage
@@ -603,6 +642,7 @@ class Synchro {
 
           //final conn = await MySqlConnection.connect(ConnectionSettings(
           // host: '192.168.43.8', port: 3306, user: 'root', db: 'pam2'));
+
           var get_especes_rows = await conn.query(
               'SELECT * FROM  especes where (locate=? or locate=?)',
               [ids.first['locate'], 'all']);
@@ -699,11 +739,12 @@ class Synchro {
                     0) {
 
                   await db.rawUpdate(
-                      'UPDATE `groupement` SET `nom_groupement`=?,`id_localite`=?,`activite_groupement`=?,`flagtransmis`=? WHERE `id_groupement`=?',
+                      'UPDATE `groupement` SET `nom_groupement`=?,`id_localite`=?,`activite_groupement`=?, id_union=?,`flagtransmis`=? WHERE `id_groupement`=?',
                       [
                         row['nom_groupement'],
                         row['id_localite'],
                         row['activite_groupement'],
+                        row['id_union'],
                         row['flagtransmis'],
                         row['id_groupement'],
                       ]);
@@ -712,12 +753,13 @@ class Synchro {
               } else {
                 //insert
                 await db.rawQuery(
-                    'INSERT INTO `groupement` (`id_groupement`, `nom_groupement`, `id_localite`, `activite_groupement`, `flagtransmis`) VALUES (?,?,?,?,?)',
+                    'INSERT INTO `groupement` (`id_groupement`, `nom_groupement`, `id_localite`, `activite_groupement`, id_union, `flagtransmis`) VALUES (?,?,?,?,?,?)',
                     [
                       row['id_groupement'],
                       row['nom_groupement'],
                       row['id_localite'],
                       row['activite_groupement'],
+                      row['id_union'],
                       row['flagtransmis']
                     ]);
                 counting++;
@@ -842,42 +884,44 @@ class Synchro {
                     personne_update_time = "";
                   else
                     personne_update_time = personne_update.first['flagtransmis'];
-                  if ((personne_update_time)
-                      .toString()
-                      .compareTo(row['flagtransmis']) <
-                      0) {
-                    print("download personne photo"+row['prenom_personne']);
-                    var imageName;
-                    if (row['images'].toString().startsWith("\\"))
-                      imageName = row['images']
-                          .toString()
-                          .replaceFirst(new RegExp(r'\\'), '');
-                    else
-                      imageName = row['images'];
-                    // print(imageName);
-                    Response response = await Dio().download(
-                        this.online_link + this.onlinePath + imageName,
-                        this.localPath + imageName);
-                    print("response" + response.statusCode.toString());
-                    if (response.statusCode == 200) {
-                      counting++;
-                      await db.rawUpdate(
-                          'UPDATE `personne` SET `nom_personne`=?,`prenom_personne`=?,`tel_personne`=?,`genre`=?,`age`=?,`uids`=?,`email`=?,`mdp`=?,`images`=?,`liens`=?,`menage`=?,`flagtransmis`=? WHERE `id_personne`=?',
-                          [
-                            row['nom_personne'],
-                            row['prenom_personne'],
-                            row['tel_personne'],
-                            row['genre'],
-                            row['age'],
-                            row['uids'],
-                            row['email'],
-                            row['mdp'],
-                            imageName,
-                            row['flagtransmis'],
-                            row['liens'],
-                            row['menage'],
-                            row['id_personne']
-                          ]);
+                  if(personne_update_time.toString().compareTo("")!=0) {
+                    if ((personne_update_time)
+                        .toString()
+                        .compareTo(row['flagtransmis']) <
+                        0) {
+                      print("download personne photo" + row['prenom_personne']);
+                      var imageName;
+                      if (row['images'].toString().startsWith("\\"))
+                        imageName = row['images']
+                            .toString()
+                            .replaceFirst(new RegExp(r'\\'), '');
+                      else
+                        imageName = row['images'];
+                      // print(imageName);
+                      Response response = await Dio().download(
+                          this.online_link + this.onlinePath + imageName,
+                          this.localPath + imageName);
+                      print("response" + response.statusCode.toString());
+                      if (response.statusCode == 200) {
+                        counting++;
+                        await db.rawUpdate(
+                            'UPDATE `personne` SET `nom_personne`=?,`prenom_personne`=?,`tel_personne`=?,`genre`=?,`age`=?,`uids`=?,`email`=?,`mdp`=?,`images`=?,`liens`=?,`menage`=?,`flagtransmis`=? WHERE `id_personne`=?',
+                            [
+                              row['nom_personne'],
+                              row['prenom_personne'],
+                              row['tel_personne'],
+                              row['genre'],
+                              row['age'],
+                              row['uids'],
+                              row['email'],
+                              row['mdp'],
+                              imageName,
+                              row['flagtransmis'],
+                              row['liens'],
+                              row['menage'],
+                              row['id_personne']
+                            ]);
+                      }
                     }
                   }
                 } else {
@@ -976,15 +1020,16 @@ class Synchro {
                     .toString()
                     .compareTo(row['flagtransmis']) <
                     0) {
-                  counting++;
+
                   await db.rawUpdate(
-                      'UPDATE `personne_adresse` SET `id_personne`=?`id_localite`=?,`flagtransmis`=? WHERE `id_prs_adresse`=?',
+                      'UPDATE `personne_adresse` SET `id_personne`=? , `id_localite`=?, `flagtransmis`=? WHERE `id_prs_adresse`=?',
                       [
                         row['id_personne'],
                         row['id_localite'],
                         row['flagtransmis'],
                         row['id_prs_adresse']
                       ]);
+                  counting++;
                 }
               } else {
                 //insert
@@ -1042,6 +1087,7 @@ class Synchro {
                 else
                   personne_fonction_update_time =
                   personne_fonction_update.first['flagtransmis'];
+                if( personne_fonction_update_time.toString().compareTo("")!=0) {
                 if ((personne_fonction_update_time)
                     .toString()
                     .compareTo(row['flagtransmis']) <
@@ -1056,7 +1102,7 @@ class Synchro {
                         row['id_prs_fonction']
                       ]);
                 }
-              } else {
+              } }else {
                 //insert
                 await db.rawQuery(
                     'INSERT INTO `personne_fonction`(`id_prs_fonction`, `nom_fonction`, `id_personne`, `flagtransmis`) VALUES (?,?,?,?)',
@@ -1948,110 +1994,7 @@ class Synchro {
         }
 
 
-        try {
 
-          //final conn = await MySqlConnection.connect(ConnectionSettings(
-          // host: '192.168.43.8', port: 3306, user: 'root', db: 'pam2'));
-          var get_campagne_agricole_rows = await conn.query(
-              'SELECT * FROM  campagne_agricole ', []);
-
-          print(get_campagne_agricole_rows.toString());
-
-          //var codification_update_time = "";
-          // print("flagtransmis" + detenteur_plantation_update_time);
-          counting = 0;
-          for (var row in get_campagne_agricole_rows) {
-            try{
-              // print("new" + row['flagtransmis']);
-              var id = row['id'];
-              int exiting = Sqflite.firstIntValue(await db.rawQuery(
-                  'SELECT COUNT(*) FROM campagne_agricole  where id=?',
-                  [id]));
-              if (exiting != 0) {
-                //update
-              //no update here
-
-              } else {
-                //insert
-                await db.rawQuery(
-                    'INSERT INTO `campagne_agricole`(`id`, `description`) VALUES (?,?)',
-                    [
-                      row['id'],
-                      row['description'],
-
-
-                    ]);
-                counting++;
-              }
-            }catch(e){
-              print("error ");
-            }
-
-          }
-          //  await db.rawQuery('DELETE FROM `rendement` WHERE 1', []);
-           //  List<Map> sgroupement =
-          //  await db.rawQuery('SELECT * FROM campagne_agricole');
-          // print(sgroupement);
-
-          print('campagne_agricole ${counting}');
-
-        } catch (e) {
-          print("error from  campagne_agricole table " + e.toString());
-        }
-
-
-        try {
-
-          //final conn = await MySqlConnection.connect(ConnectionSettings(
-          // host: '192.168.43.8', port: 3306, user: 'root', db: 'pam2'));
-          var get_unions_rows = await conn.query(
-              'SELECT * FROM  unions ', []);
-
-       //   print(get_unions_rows.toString());
-
-          //var codification_update_time = "";
-          // print("flagtransmis" + detenteur_plantation_update_time);
-          counting = 0;
-          for (var row in get_unions_rows) {
-            try{
-              // print("new" + row['flagtransmis']);
-              var id = row['id_un'];
-              int exiting = Sqflite.firstIntValue(await db.rawQuery(
-                  'SELECT COUNT(*) FROM unions  where id_un=?',
-                  [id]));
-              if (exiting != 0) {
-                //update
-                //no update here
-
-              } else {
-                //insert
-                await db.rawQuery(
-                    'INSERT INTO `unions`(`id_un`, `id_fed`,description_un ,flagtransmis) VALUES (?,?,?,?)',
-                    [
-                      row['id_un'],
-                      row['id_fed'],
-                      row['description_un'],
-                      row['flagtransmis'],
-
-
-                    ]);
-                counting++;
-              }
-            }catch(e){
-              print("error ");
-            }
-
-          }
-          //  await db.rawQuery('DELETE FROM `rendement` WHERE 1', []);
-          //  List<Map> sgroupement =
-          //  await db.rawQuery('SELECT * FROM campagne_agricole');
-          // print(sgroupement);
-
-          print('unions ${counting}');
-
-        } catch (e) {
-          print("error from  unions table " + e.toString());
-        }
 
         try {
 
@@ -2097,7 +2040,7 @@ class Synchro {
           }
           //  await db.rawQuery('DELETE FROM `rendement` WHERE 1', []);
           //  List<Map> sgroupement =
-          //  await db.rawQuery('SELECT * FROM campagne_agricole');
+
           // print(sgroupement);
 
           print('confederation ${counting}');
@@ -2151,7 +2094,7 @@ class Synchro {
           }
           //  await db.rawQuery('DELETE FROM `rendement` WHERE 1', []);
           //  List<Map> sgroupement =
-          //  await db.rawQuery('SELECT * FROM campagne_agricole');
+
           // print(sgroupement);
 
           print('federation ${counting}');
@@ -2400,13 +2343,14 @@ class Synchro {
           for (var row in groupement) {
             try{
             await conn.query(
-                'INSERT INTO `groupement`(`id_groupement`, `nom_groupement`, `id_localite`, `activite_groupement`, `flagtransmis`, `locate`) VALUES (?,?,?,?,?,?)',
+                'INSERT INTO `groupement`(`id_groupement`, `nom_groupement`, `id_localite`, `activite_groupement`,id_union, `flagtransmis`, `locate`) VALUES (?,?,?,?,?,?,?)',
 
                 [
                   row['id_groupement'],
                   row['nom_groupement'],
                   row['id_localite'],
                   row['activite_groupement'],
+                  row['id_union'],
                   finalDate,
                   ids.first['locate']
                 ]);
@@ -2452,7 +2396,7 @@ class Synchro {
                 [finalDate, row['id_groupement']]);
             count++;
             }catch(e){
-              print("error ");
+              print("error "+e.toString());
             }
           }
 
@@ -2470,7 +2414,26 @@ class Synchro {
               count = 0;
               for (var row in personne) {
                 try {
-                  print("uploadi image "+row['nom_personne']);
+                  var id = row['id_personne'];
+                  var exiting=  await conn.query(
+                      'SELECT * FROM personne  where id_personne=?'  , [id]);
+                  print( "existing"+exiting.length.toString());
+                  if (exiting.length!= 0) {
+                    print("update");
+                    await conn.query(
+                        'UPDATE `personne` SET `mdp`=?,`flagtransmis`=?  WHERE id_personne=? ',
+                        [
+                          row['mdp'],
+                          finalDate,
+                          row['id_personne'],
+
+                        ]);
+                    count++;
+                    await db.rawUpdate(
+                        'UPDATE `personne` SET  `flagtransmis`=? WHERE id_personne=?',
+                        [finalDate, row['id_personne']]);
+                  }else{
+                  print("uploadi image " + row['nom_personne']);
 
                   final dio = Dio();
 
@@ -2481,19 +2444,19 @@ class Synchro {
                   final file = await MultipartFile.fromFile(
                       this.localPath + row['images'],
                       filename: row['images']);
-                   print(this.online_link + this.onlinePath + row['images']);
+                  print(this.online_link + this.onlinePath + row['images']);
                   final formData = FormData.fromMap({
                     'file': file,
                     'online_path': this.onlinePath
                   }); // 'file' - this is an api key, can be different
 
                   Response response = await dio.post(
-                       // or dio.post
-                         this.online_link + "upload.php",
-                         data: formData,
-                         options:
-                         Options(contentType: Headers.formUrlEncodedContentType));
-                     print("response " + response.statusCode.toString());
+                    // or dio.post
+                      this.online_link + "upload.php",
+                      data: formData,
+                      options:
+                      Options(contentType: Headers.formUrlEncodedContentType));
+                  print("response " + response.statusCode.toString());
 
 
                   if (response.statusCode == 200) {
@@ -2521,6 +2484,7 @@ class Synchro {
                         [finalDate, row['id_personne']]);
                     count++;
                   }
+                }
                 } catch (err) {
                   print('uploading error: $err');
                 }
@@ -2575,22 +2539,46 @@ class Synchro {
           count = 0;
 
           for (var row in personne_fonction) {
-            try{
-            await conn.query(
-                'INSERT INTO `personne_fonction`(`id_prs_fonction`, `nom_fonction`, `id_personne`, `flagtransmis`, `locate`) VALUES (?,?,?,?,?)',
+            try {
+              var id = row['id_prs_fonction'];
+              var exiting = await conn.query(
+                  'SELECT * FROM personne_fonction  where id_prs_fonction=?', [id]);
+              print("existing" + exiting.length.toString());
+              if (exiting.length != 0) {
+                print("update");
+                await conn.query(
+                    'UPDATE `personne_fonction` SET `nom_fonction`=?,`flagtransmis`=?  WHERE id_prs_fonction=? ',
+                    [
+                      row['nom_fonction'],
+                      finalDate,
+                      row['id_prs_fonction'],
 
-                [
-                  row['id_prs_fonction'],
-                  row['nom_fonction'],
-                  row['id_personne'],
-                  finalDate,
-                  ids.first['locate']
-                ]);
+                    ]);
+                count++;
+                await db.rawUpdate(
+                    'UPDATE `personne_fonction` SET  `flagtransmis`=? WHERE id_prs_fonction=?',
+                    [finalDate, row['id_prs_fonction']]);
+              }
+              else{
+                await conn.query(
+                    'INSERT INTO `personne_fonction`(`id_prs_fonction`, `nom_fonction`, `id_personne`, `flagtransmis`, `locate`) VALUES (?,?,?,?,?)',
 
-            await db.rawUpdate(
-                'UPDATE `personne_fonction` SET  `flagtransmis`=? WHERE id_prs_fonction=?',
-                [finalDate, row['id_prs_fonction']]);
-            count++;
+                    [
+                      row['id_prs_fonction'],
+                      row['nom_fonction'],
+                      row['id_personne'],
+                      finalDate,
+                      ids.first['locate']
+                    ]);
+                await db.rawUpdate(
+                    'UPDATE `personne_fonction` SET  `flagtransmis`=? WHERE id_prs_fonction=?',
+                    [finalDate, row['id_prs_fonction']]);
+
+
+                count++;
+            }
+
+
             }catch(e){
               print("error ");
             }
@@ -2741,14 +2729,14 @@ class Synchro {
                 [finalDate, row['id_type_bien']]);
             count++;
             }catch(e){
-              print("error "+e.toString());
+              print("error biens "+e.toString());
             }
           }
 
           print('biens ${count}');
 
         }catch(e){
-          print("error from  biens table " + e.toString());
+          print("error from  biens table biens" + e.toString());
 
         }
 
@@ -2815,7 +2803,7 @@ class Synchro {
                 [finalDate, row['id_service']]);
             count++;
             }catch(e){
-              print("error "+e.toString());
+              print("error services_recus "+e.toString());
             }
           }
 
@@ -2914,7 +2902,7 @@ class Synchro {
     }finally{
         //Duration temps = new Duration(hours:0, minutes:1, seconds:00);
 
-        Future.delayed(const Duration(seconds: 60),()=> connect());
+        Future.delayed(const Duration(seconds: 300),()=> connect());
       }
 
     }

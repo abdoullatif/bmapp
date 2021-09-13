@@ -12,6 +12,28 @@ import 'package:ota_update/ota_update.dart';
 import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
 
+import 'acceuil.dart';
+import 'login.dart';
+
+
+
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key key, this.title}) : super(key: key);
+  final String title;
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+      body: Sliders(),
+    );
+  }
+}
 
 
 class Sliders extends StatefulWidget {
@@ -97,14 +119,6 @@ class _SlidersState extends State<Sliders> {
   @override
   Widget build(BuildContext context) {
 
-    for(int i=1; i<60; i++)
-    {
-      if(i%i == 1)
-      {
-        print("Le i eme nombre premier est : $i");
-      }
-    }
-
     //Rechargement automatique
     FutureOr onGoBack(dynamic value) {
       setState(() {});
@@ -189,9 +203,10 @@ class _SlidersState extends State<Sliders> {
                       showIndicator: false,
                       onImageTap: (index) {
                         //
-                        Navigator.push(context, MaterialPageRoute(
+                        /*Navigator.push(context, MaterialPageRoute(
                             builder: (context) => Acceuil()),
-                        );
+                        );*/
+                        Navigator.of(context).pushNamed('/Acceuil').then(onGoBack);
                       },
                     )
                 ),
@@ -282,9 +297,13 @@ class _SlidersState extends State<Sliders> {
                     showIndicator: false,
                     onImageTap: (index) {
                       //
-                      Navigator.push(context, MaterialPageRoute(
+
+                      /*Navigator.push(context, MaterialPageRoute(
                           builder: (context) => Acceuil()),
-                      );
+                      );*/
+
+                      Navigator.of(context).pushNamed('/Acceuil').then(onGoBack);
+
                     },
                   )
               ),

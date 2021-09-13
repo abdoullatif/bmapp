@@ -90,7 +90,7 @@ class _Video_viewState extends State<Video_view> {
                               elevation: 10,
                               child: ChewieItem(
                                 videoPlayerController: VideoPlayerController.file(File("/storage/emulated/0/Android/data/com.tulipind.bmapp/files/Video/${snap[0]['media_file']}")),
-                                looping: true,
+                                looping: false,
                               ),
                             ),
                           ),

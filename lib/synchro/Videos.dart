@@ -96,13 +96,14 @@ class Videos {
       counting = 0;
       for (var row in get_categories_rows) {
            try {
-             print("new" + row['flagtransmis']);
+           //  print("new" + row['flagtransmis']);
              var id = row['id'];
              int exiting = Sqflite.firstIntValue(await db
                  .rawQuery(
                  'SELECT COUNT(*) FROM categories  where id=?', [id]));
              if (exiting != 0) {
                //update
+
                List<Map> categories_update = await db.rawQuery(
                    'SELECT * FROM categories   where id=?', [id]);
                var categories_update_time;
@@ -111,9 +112,11 @@ class Videos {
                else
                  categories_update_time =
                  categories_update.first['flagtransmis'];
+           //    print(categories_update_time);
                if ((categories_update_time).toString().compareTo(
                    row['flagtransmis']) <
                    0) {
+                 print("update");
                  counting++;
                  await db.rawUpdate(
                      'UPDATE `categories` SET `nom_categ`=?,`flagtransmis`=? WHERE id=?',
@@ -121,6 +124,8 @@ class Videos {
                }
              } else {
                //insert
+               print("insert");
+               counting++;
                await db.rawQuery(
                    'INSERT INTO `categories`(`id`, `nom_categ`,flagtransmis) VALUES (?,?,?)',
                    [row['id'], row['nom_categ'], row['flagtransmis']]);
@@ -297,9 +302,9 @@ class Videos {
       await conn.close();
 
       }catch(e){
-        print('error video');
+        print('error video '+e.toString());
       }finally{
-        Future.delayed(const Duration(seconds: 60),()=> connect());
+        Future.delayed(const Duration(seconds: 1800),()=> connect());
 
       }
 

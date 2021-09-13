@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bmapp/database/database.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:random_string/random_string.dart';
 
 
@@ -30,7 +31,7 @@ class _pannelGroupementSelectState extends State<pannelGroupementSelect> {
 
     //LISTE DES GROUPEMENT
     Future<void> SelectAllGroupement() async {
-      List<Map<String, dynamic>> queryGroup = await DB.querygroupunion();
+      List<Map<String, dynamic>> queryGroup = await DB.querygroupinfo();
       return queryGroup;
     }
     //Si chef Agriculteurs
@@ -106,12 +107,13 @@ class _pannelGroupementSelectState extends State<pannelGroupementSelect> {
                                 //Verification
                                 List<Map<String, dynamic>> _tab = await DB.queryAll("parametre");
                                 List<Map<String, dynamic>> _groupmnt = await DB.queryverifgroupmnt(idpersonne,snap[index]['id_groupement']);
+                                List<Map<String, dynamic>> _ifexiste = await DB.queryverifgroup(idpersonne);
                                 //List<Map<String, dynamic>> _groupmnt = await DB.queryverifgroupmnt(idpersonne);
                                 if(_tab.isNotEmpty){
                                   //id genere
                                   String idmbgroupgen = _tab[0]["device"]+"-"+randomAlphaNumeric(10);
                                   //Insertion
-                                  if(_groupmnt.isEmpty){
+                                  if(_ifexiste.isEmpty){
                                     //
                                     await DB.insert("membre_groupement", {
                                       "id_mb_groupement": idmbgroupgen,
@@ -120,15 +122,35 @@ class _pannelGroupementSelectState extends State<pannelGroupementSelect> {
                                       "statu": "membre",
                                       "flagtransmis": "",
                                     });
-                                    Scaffold
-                                        .of(context)
-                                        .showSnackBar(SnackBar(content: Text('Adherer au groupement !')));
+                                    //
+                                    Fluttertoast.showToast(
+                                        msg: "Adherer au groupement ! ! ", //Présence enregistrée,
+                                        toastLength: Toast.LENGTH_LONG,
+                                        gravity: ToastGravity.BOTTOM,
+                                        timeInSecForIosWeb: 5,
+                                        backgroundColor: Colors.green,
+                                        textColor: Colors.white,
+                                        fontSize: 16.0
+                                    );
+                                    //
+                                    setState(() {
+                                      confirm = "";
+                                    });
                                   } else {
                                     //
-                                    Scaffold
-                                        .of(context)
-                                        .showSnackBar(SnackBar(content: Text('Vous avez deja ete ajouter a ce groupement !')));
+                                    Fluttertoast.showToast(
+                                        msg: "Vous avez déjà adhere a un groupement !", //Présence enregistrée,
+                                        toastLength: Toast.LENGTH_LONG,
+                                        gravity: ToastGravity.BOTTOM,
+                                        timeInSecForIosWeb: 5,
+                                        backgroundColor: Colors.red,
+                                        textColor: Colors.white,
+                                        fontSize: 16.0
+                                    );
                                   }
+
+
+                                  // if(_groupmnt.isEmpty){}
 
                                   // keytool -genkey -v -keystore c:\Users\assooba\key.jks -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias key
                                   /*
@@ -171,9 +193,15 @@ class _pannelGroupementSelectState extends State<pannelGroupementSelect> {
                                         }
                                         */
                                 } else {
-                                  Scaffold
-                                      .of(context)
-                                      .showSnackBar(SnackBar(content: Text('La tablette n\'a pas d\'identifiant !')));
+                                  Fluttertoast.showToast(
+                                      msg: "La tablette n\'a pas d\'identifiant !", //Présence enregistrée,
+                                      toastLength: Toast.LENGTH_LONG,
+                                      gravity: ToastGravity.BOTTOM,
+                                      timeInSecForIosWeb: 5,
+                                      backgroundColor: Colors.red,
+                                      textColor: Colors.white,
+                                      fontSize: 16.0
+                                  );
                                 }
                               }
                             },
@@ -181,13 +209,14 @@ class _pannelGroupementSelectState extends State<pannelGroupementSelect> {
                               margin: EdgeInsets.only(top: 25.0,),
                               elevation: 2.0,
                               child: ListTile(
-                                title: Text('Groupement: ${newDataList[index]['nom_groupement']} \nActivites: ${newDataList[index]['activite_groupement']} \nUnion: ${newDataList[index]['description_un']}',
+                                title: Text('Groupement: ${newDataList[index]['nom_groupement']} \nActivites: ${newDataList[index]['activite_groupement']} \nUnion: ${newDataList[index]['description_un']}'
+                                    '\nPresident(e) : ${newDataList[index]['nom_personne']}  ${newDataList[index]['prenom_personne']}',
                                   style: TextStyle(
                                     fontSize: 16.0,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                //subtitle: Text('------------------------- Adherer --------------------------'),
+                                subtitle: Text('Toucher pour Adherer'),
                               ),
                             )
                         );
@@ -210,7 +239,7 @@ class _pannelGroupementSelectState extends State<pannelGroupementSelect> {
     final _mes_groupement = FutureBuilder(
         future: SelectGroup(),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
-          List<Map<String, dynamic>> snap = snapshot.data;
+          List<Map<String, dynamic>> m_groupement = snapshot.data;
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
               child: CircularProgressIndicator(),
@@ -222,10 +251,11 @@ class _pannelGroupementSelectState extends State<pannelGroupementSelect> {
               child: Text("Erreur de chargement"),
             );
           }
-          int n = snap.length;
+          print(m_groupement);
+          int n = m_groupement.length;
           final items = List<String>.generate(n, (i) => "Item $i");
           //search bar new list
-          List<Map<String, dynamic>> newDataList = List.from(snap);
+          List<Map<String, dynamic>> newDataList = List.from(m_groupement);
           //
 
           return Container(
@@ -253,7 +283,7 @@ class _pannelGroupementSelectState extends State<pannelGroupementSelect> {
                               elevation: 2.0,
                               child: ListTile(
                                 title: newDataList[index]['statu'] == "Chef" ?
-                                Text('Groupement: ${newDataList[index]['nom_groupement']} \nActivites: ${newDataList[index]['activite_groupement']} \nStatus: President \nUnion: ${newDataList[index]['description_un']}',
+                                Text('Groupement: ${newDataList[index]['nom_groupement']} \nActivites: ${newDataList[index]['activite_groupement']} \nStatus: President(e) \nUnion: ${newDataList[index]['description_un']}',
                                   style: TextStyle(
                                     fontSize: 16.0,
                                     fontWeight: FontWeight.bold,

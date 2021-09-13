@@ -28,6 +28,7 @@ class _sbs_pannelState extends State<sbs_pannel> {
   Widget build(BuildContext context) {
 
     final idpersonne = ModalRoute.of(context).settings.arguments;
+    print(idpersonne);
 
     return Center(
       child: Row(
@@ -46,10 +47,10 @@ class _sbs_pannelState extends State<sbs_pannel> {
             child: RaisedButton(
               onPressed: (){
                 Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => Service()),
+                    builder: (context) => Service(),settings: RouteSettings(arguments: idpersonne,)),
                 );
               },
-              child: Text("Service Recu",
+              child: Text("Service Reçu",
                 style: TextStyle(
                   fontSize: 24.0,
                   fontWeight: FontWeight.bold,
@@ -77,7 +78,7 @@ class _sbs_pannelState extends State<sbs_pannel> {
             child: RaisedButton(
               onPressed: (){
                 Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => Bien()),
+                    builder: (context) => Bien(),settings: RouteSettings(arguments: idpersonne,)),
                 );
               },
               child: Text("Bien",

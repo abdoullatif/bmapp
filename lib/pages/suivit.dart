@@ -1,14 +1,17 @@
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:bmapp/database/database.dart';
 import 'package:bmapp/models/dataSearch.dart';
 import 'package:bmapp/models/donnee_route.dart';
+import 'package:bmapp/pages/userAgriculteurEleveur.dart';
 import 'package:bmapp/search/SearchUI.dart';
 import 'package:dropdown_formfield/dropdown_formfield.dart';
 import 'package:flutter/material.dart';
 
-import 'User.dart';
+import 'userAgriculteur.dart';
+import 'userEleveur.dart';
 
 class Listsuivit extends StatelessWidget {
   @override
@@ -59,6 +62,9 @@ class _SuivitState extends State<Suivit> {
   @override
   Widget build(BuildContext context) {
 
+    FutureOr onGoBack(dynamic value) {
+      setState(() {});
+    }
     //
     Future<List<Map<String, dynamic>>> Userquery() async{
       List<Map<String, dynamic>> tab = await DB.queryAll("parametre");
@@ -75,6 +81,9 @@ class _SuivitState extends State<Suivit> {
         return queryRows;
       } else if (search == "Eleveur"){
         List<Map<String, dynamic>> queryRows = await DB.queryUserComboEl(_locate[0]["id_localite"].toString(), search);
+        return queryRows;
+      } else if (search == "Agriculteur et Eleveur"){
+        List<Map<String, dynamic>> queryRows = await DB.queryUserComboAgEl(_locate[0]["id_localite"].toString(), search);
         return queryRows;
       }
     }
@@ -105,6 +114,33 @@ class _SuivitState extends State<Suivit> {
               children: <Widget>[
                 Column(
                   children: <Widget>[
+                    //SizedBox(height: 10.0,),
+                    Container(
+                      //color: Colors.indigo,
+                        margin: EdgeInsets.only(bottom: 30.0),
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: SizedBox(
+                            //height: 50.0,
+                            child: _type_personne == "" ?
+                            Text(
+                              "Nombre d'agriculteurs et éléveurs : $n",
+                              style: TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ) :
+                            Text(
+                              "Nombre $_type_personne : $n",
+                              style: TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        )
+                    ),
+                    //SizedBox(height: 10.0,),
                     Container(
                       width: MediaQuery.of(context).size.width,
                       child: DropDownFormField(
@@ -123,7 +159,9 @@ class _SuivitState extends State<Suivit> {
                         },
                         dataSource: [
                           {"display": "Agriculteur", "value": "Agriculteur"},
-                          {"display": "Eleveur", "value": "Eleveur"}
+                          {"display": "Eleveur", "value": "Eleveur"},
+                          {"display": "Agriculteur et Eleveur", "value": "Agriculteur et Eleveur"},
+                          {"display": "tous", "value": ""}
                         ],
                         textField: 'display',
                         valueField: 'value',
@@ -149,9 +187,21 @@ class _SuivitState extends State<Suivit> {
                           color: Colors.transparent,
                           disabledColor: Colors.transparent,
                           onPressed: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => UserPannel(),settings: RouteSettings(arguments: DonneeRoute(
-                                '${newDataList[index]['id_personne']}', '${newDataList[index]['nom_fonction']}'
-                            ))),);
+
+                            if(newDataList[index]['nom_fonction'] == "E" || newDataList[index]['nom_fonction'] == "CE"){
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => UserPannelEleveur(),settings: RouteSettings(arguments: DonneeRoute(
+                                  '${newDataList[index]['id_personne']}', '${newDataList[index]['nom_fonction']}'
+                              ))),).then(onGoBack);
+                            } else if (newDataList[index]['nom_fonction'] == "AG" || newDataList[index]['nom_fonction'] == "CAG"){
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => UserPannel(),settings: RouteSettings(arguments: DonneeRoute(
+                                  '${newDataList[index]['id_personne']}', '${newDataList[index]['nom_fonction']}'
+                              ))),).then(onGoBack);
+                            } else if (newDataList[index]['nom_fonction'] == "AGE" || newDataList[index]['nom_fonction'] == "CAGCE"){
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => AgriculteurEleveurPannel(),settings: RouteSettings(arguments: DonneeRoute(
+                                  '${newDataList[index]['id_personne']}', '${newDataList[index]['nom_fonction']}'
+                              ))),).then(onGoBack);
+                            } else {}
+
                           },
                           child: Card(
                             margin: EdgeInsets.only(top: 25.0,),
@@ -164,7 +214,13 @@ class _SuivitState extends State<Suivit> {
                                 //backgroundImage: Image.file(file),
                               ),
                               title: Text('${newDataList[index]['nom_personne']} ${newDataList[index]['prenom_personne']}'),
-                              subtitle: Text('${newDataList[index]['nom_fonction']}'),
+                              subtitle: newDataList[index]['nom_fonction'] == "E" ? Text('Membre Eleveur') :
+                                        newDataList[index]['nom_fonction'] == "CE" ? Text('Chef menage Eleveur') :
+                                        newDataList[index]['nom_fonction'] == "AG" ? Text('Membre Agriculteur') :
+                                        newDataList[index]['nom_fonction'] == "CAG" ? Text('Chef menage Agriculteur') :
+                                        newDataList[index]['nom_fonction'] == "CAGCE" ? Text('Chef menage Agriculteur et Eleveur') :
+                                        newDataList[index]['nom_fonction'] == "AGE" ? Text('Membre Agriculteur et Eleveur') :
+                                        Text('${newDataList[index]['nom_fonction']}'),
                             ),
                           )
                       );

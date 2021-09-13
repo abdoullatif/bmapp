@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:bmapp/database/database.dart';
 import 'package:bmapp/database/storageUtil.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
 import 'package:flutter_nfc_reader/flutter_nfc_reader.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:random_string/random_string.dart';
 
@@ -23,8 +25,6 @@ class Phone extends StatelessWidget {
     );
   }
 }
-
-
 
 class PhoneCall extends StatefulWidget {
   @override
@@ -44,7 +44,21 @@ class _PhoneCallState extends State<PhoneCall> {
   String nfc = "";
   //
   AudioPlayer player = AudioPlayer();
-  //voice recorder fonc
+
+  @override
+  void dispose() async{
+    // TODO: implement dispose
+    super.dispose();
+    if(nom_v != null){
+      var _vocal = await DB.queryVocal(nom_v);
+      if (_vocal.isEmpty){
+        File audio = File("/storage/emulated/0/Android/data/com.tulipind.bmapp/files/$nom_v");
+        await audio.delete();
+      }
+    }
+  }
+
+  //
   @override
   void initState() {
     super.initState();
@@ -52,6 +66,7 @@ class _PhoneCallState extends State<PhoneCall> {
       _prepare();
     });
   }
+
   //void
   void _opt(DragEndDetails details) async {
     switch (_recording.status) {
@@ -90,6 +105,15 @@ class _PhoneCallState extends State<PhoneCall> {
 
   //Future ini
   Future _init() async {
+
+    if(nom_v != null){
+      var _vocal = await DB.queryVocal(nom_v);
+      if (_vocal.isEmpty){
+        File audio = File("/storage/emulated/0/Android/data/com.tulipind.bmapp/files/$nom_v");
+        await audio.delete();
+      }
+    }
+
     nom_v = compteur();
     String customPath = '/'+
         nom_v;
@@ -131,6 +155,7 @@ class _PhoneCallState extends State<PhoneCall> {
       });
     }
   }
+
   //start recorder
   Future _startRecording() async {
     await _recorder.start();
@@ -147,6 +172,7 @@ class _PhoneCallState extends State<PhoneCall> {
       });
     });
   }
+
   //stop
   Future _stopRecording() async {
     var result = await _recorder.stop();
@@ -156,14 +182,17 @@ class _PhoneCallState extends State<PhoneCall> {
       _recording = result;
     });
   }
+
   //play
   void _play() {
     player.play(_recording.path, isLocal: true);
   }
+
   //pause
   void _pause() {
     player.pause();
   }
+
   //_send
   void _send() async{
     //le boutton d'envois
@@ -180,24 +209,56 @@ class _PhoneCallState extends State<PhoneCall> {
       //
       var _vocal = await DB.queryVocal(nom_v);
       if (_vocal.isNotEmpty){
-        Scaffold
-            .of(context)
-            .showSnackBar(SnackBar(content: Text(
-            'Votre message a déjà été envoyé !')));
+
+        Fluttertoast.showToast(
+            msg: "Votre message a déjà été envoyé !",
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 5,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0
+        );
+
       } else {
-        print(nfc);
+        //
         if (nfc != ""){
-          await DB.insert("fichier_audio", {
-            "id": idvocalgen,
-            "iud": nfc,
-            "nom_audio": nom_v,
-            "date_audio": dateNow.toString(),
-            "flagtransmis": "false",
-          });
-          Scaffold
-              .of(context)
-              .showSnackBar(SnackBar(content: Text(
-              'Message Envoyer merci !!')));
+          //Verification de l'uid de l'utilisateur
+          var ifPersonneExist = await DB.queryWhereUid("personne", nfc);
+          //Conditionnnement d'enregistrement
+          if(ifPersonneExist.isNotEmpty){
+            //Si il est beneficiaire du programme
+            await DB.insert("fichier_audio", {
+              "id": idvocalgen,
+              "uid": nfc,
+              "nom_audio": nom_v,
+              "date_audio": dateNow.toString(),
+              "flagtransmis": "false",
+            });
+
+            Fluttertoast.showToast(
+                msg: "Votre message a bien été envoyer",
+                toastLength: Toast.LENGTH_LONG,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 5,
+                backgroundColor: Colors.green,
+                textColor: Colors.white,
+                fontSize: 16.0
+            );
+
+          } else {
+
+            Fluttertoast.showToast(
+                msg: "Bracelets non enregistrer !",
+                toastLength: Toast.LENGTH_LONG,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 5,
+                backgroundColor: Colors.red,
+                textColor: Colors.white,
+                fontSize: 16.0
+            );
+
+          }
         } else {
           showDialog<String>(
             context: context,
@@ -205,7 +266,7 @@ class _PhoneCallState extends State<PhoneCall> {
               return AlertDialog(
                 title: Text("Authentification"),
                 content: Text(
-                  'Veuillez Scanner votre bracelet pour confirmer votre identite', style: TextStyle(color: Colors.green,),),
+                  'Veuillez Scanner votre bracelet pour confirmer votre identité', style: TextStyle(color: Colors.green,),),
                 actions: <Widget>[
                   FlatButton(
                     child: Text('OK'),
@@ -239,13 +300,19 @@ class _PhoneCallState extends State<PhoneCall> {
       }
 
     } else {
-      print('pas de donnee parametre');
-      Scaffold
-          .of(context)
-          .showSnackBar(SnackBar(content: Text(
-          'La tablette n\'a pas d\'identifiant !!')));
+
+      Fluttertoast.showToast(
+          msg: "La tablette n\'a pas d\'identifiant !!",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 5,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
     }
   }
+
   //play icon
   Widget _playerIcon(RecordingStatus status) {
     switch (status) {
@@ -268,7 +335,6 @@ class _PhoneCallState extends State<PhoneCall> {
         return Icon(Icons.do_not_disturb_on);
     }
   }
-  //
 
   @override
   Widget build(BuildContext context) {
